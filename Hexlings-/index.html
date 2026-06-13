@@ -1,0 +1,643 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HEXLINGS — Whitelist</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#0a0518;font-family:"Press Start 2P",monospace;overflow-x:hidden;color:#e8d0ff;}
+canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+nav{position:relative;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:52px;background:rgba(5,2,15,0.95);border-bottom:4px solid #1a0840;}
+.nav-logo{font-size:12px;color:#c792ea;letter-spacing:2px;}
+.nav-links{display:flex;gap:24px;}
+.nav-links a{color:#5030a0;text-decoration:none;font-size:8px;letter-spacing:1px;padding:6px 10px;border:2px solid transparent;transition:all .1s;}
+.nav-links a:hover{color:#c792ea;border-color:#3a1a6a;}
+.wrap{position:relative;z-index:10;max-width:960px;margin:0 auto;padding:80px 24px;}
+#apply{
+  background: radial-gradient(ellipse at center, rgba(80,20,160,0.25) 0%, rgba(10,4,40,0.15) 60%, transparent 100%);
+  border-radius:4px;
+}
+.sec-eye{font-size:8px;color:#00e5c8;letter-spacing:4px;margin-bottom:10px;text-align:center;}
+.sec-h{font-size:clamp(14px,2.5vw,22px);color:#f0e0ff;text-align:center;margin-bottom:48px;text-shadow:3px 3px 0 #4a1a9a, 0 0 20px rgba(180,100,255,0.4);}
+
+/* ── HERO ── */
+#home{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 24px 40px;position:relative;z-index:10;}
+.hero-title{font-size:clamp(22px,5vw,48px);color:#e8d0ff;line-height:1.4;text-shadow:4px 4px 0 #3a0a7a,0 0 60px rgba(139,43,226,.5);margin-bottom:12px;}
+.hero-title .hl{color:#00e5c8;}
+.hero-sub{font-size:8px;color:#6040a0;letter-spacing:2px;margin-bottom:40px;}
+
+/* ── SPRITE ROW ANIMATIONS ── */
+.sprite-row{display:flex;gap:10px;justify-content:center;margin-bottom:40px;flex-wrap:wrap;}
+.sprite-card{
+  width:110px;height:140px;
+  background:#0d0620;border:3px solid #1a0840;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:8px 6px;cursor:pointer;position:relative;overflow:hidden;
+}
+.sprite-card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at bottom,var(--glow-col,#8b2be2) 0%,transparent 70%);
+  opacity:0;transition:opacity .3s;
+}
+.sprite-card:hover::before{opacity:0.15;}
+.sprite-card:hover .sprite-real{animation-play-state:running;}
+.sprite-card:hover{border-color:var(--glow-col,#8b2be2);box-shadow:0 0 16px var(--glow-col,#8b2be2);}
+
+/* idle float */
+.sprite-real{
+  width:88px;height:88px;
+  image-rendering:pixelated;object-fit:contain;
+  animation:float var(--float-dur,2s) ease-in-out infinite var(--float-delay,0s);
+}
+@keyframes float{
+  0%,100%{transform:translateY(0px);}
+  50%{transform:translateY(-8px);}
+}
+
+/* hover — shake attack */
+.sprite-card:hover .sprite-real{
+  animation:attack .4s steps(4) infinite;
+}
+@keyframes attack{
+  0%{transform:translateX(0) rotate(0deg);}
+  25%{transform:translateX(-4px) rotate(-3deg);}
+  50%{transform:translateX(4px) rotate(3deg);}
+  75%{transform:translateX(-2px) rotate(-1deg);}
+  100%{transform:translateX(0) rotate(0deg);}
+}
+
+.sprite-name{font-size:6px;color:#4030a0;letter-spacing:1px;margin-top:8px;}
+
+/* shadow under char */
+.sprite-shadow{
+  width:50px;height:6px;
+  background:radial-gradient(ellipse,rgba(0,0,0,0.5) 0%,transparent 70%);
+  margin-top:2px;
+  animation:shadow-pulse var(--float-dur,2s) ease-in-out infinite var(--float-delay,0s);
+}
+@keyframes shadow-pulse{
+  0%,100%{transform:scaleX(1);opacity:.5;}
+  50%{transform:scaleX(0.7);opacity:.2;}
+}
+
+/* ── STATS ── */
+.stats-bar{display:flex;border:4px solid #1a0840;background:#060210;margin-bottom:40px;}
+.sbar-item{padding:16px 28px;text-align:center;border-right:4px solid #1a0840;}
+.sbar-item:last-child{border-right:none;}
+.sbar-num{font-size:18px;color:#f0c040;display:block;margin-bottom:6px;}
+.sbar-lbl{font-size:7px;color:#4030a0;letter-spacing:2px;}
+.btn-main{display:inline-block;background:#8b2be2;color:#fff;font-family:"Press Start 2P",monospace;font-size:11px;padding:14px 40px;text-decoration:none;border:none;cursor:pointer;box-shadow:0 6px 0 #3a0a7a;transition:all .1s;clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));}
+.btn-main:hover{transform:translateY(2px);box-shadow:0 4px 0 #3a0a7a;}
+.btn-ghost{display:inline-block;background:transparent;color:#00e5c8;font-family:"Press Start 2P",monospace;font-size:11px;padding:12px 28px;text-decoration:none;border:3px solid #00e5c8;cursor:pointer;margin-left:12px;}
+.btn-ghost:hover{background:rgba(0,229,200,.08);}
+
+/* ── ART GRID ── */
+.art-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+@media(max-width:640px){.art-grid{grid-template-columns:repeat(2,1fr);}}
+.art-card{
+  background:#080316;border:4px solid #1a0840;
+  aspect-ratio:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  position:relative;overflow:hidden;cursor:pointer;
+  transition:border-color .2s,box-shadow .2s;padding:8px;
+}
+.art-card:hover{
+  border-color:var(--glow-col,#8b2be2);
+  box-shadow:0 0 20px var(--glow-col,#8b2be2);
+}
+.art-card:hover .art-real{animation:bob .6s ease-in-out infinite;}
+@keyframes bob{0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-6px) scale(1.04);}}
+.art-real{width:85%;height:85%;image-rendering:pixelated;object-fit:contain;transition:transform .2s;}
+.art-name{font-size:7px;color:#4030a0;margin-top:6px;letter-spacing:1px;}
+.rt{position:absolute;top:6px;right:6px;font-size:7px;padding:3px 6px;}
+.rt-c{background:#111;color:#666;}.rt-u{background:#001815;color:#00e5c8;}.rt-r{background:#15082a;color:#c792ea;}.rt-e{background:#200510;color:#ff5070;}.rt-l{background:#151000;color:#f0c040;}
+
+/* spawn-in animation for art grid */
+.art-card{animation:spawn .4s ease both;}
+@keyframes spawn{from{opacity:0;transform:scale(.8) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
+
+/* ── ROADMAP ── */
+.rm-wrap{max-width:660px;margin:0 auto;position:relative;}
+.rm-wrap::before{content:"";position:absolute;left:21px;top:10px;bottom:10px;width:4px;background:repeating-linear-gradient(180deg,#1a0840 0,#1a0840 10px,transparent 10px,transparent 16px);}
+.rm-item{display:flex;gap:20px;margin-bottom:36px;}
+.rm-node{width:22px;height:22px;flex-shrink:0;margin-top:2px;background:#060210;border:4px solid #1a0840;position:relative;z-index:1;}
+.rm-node.dn{background:#00e5c8;border-color:#00e5c8;box-shadow:0 0 10px #00e5c8;}
+.rm-node.nw{background:#8b2be2;border-color:#c792ea;animation:glow 1.5s infinite;}
+@keyframes glow{0%,100%{box-shadow:0 0 6px #8b2be2}50%{box-shadow:0 0 20px #c792ea}}
+.rm-box{background:#080316;border:4px solid #1a0840;padding:14px 18px;flex:1;}
+.rm-box.nw{border-color:#2a0a5a;}
+.rm-ph{font-size:7px;color:#6040a0;letter-spacing:3px;margin-bottom:5px;}
+.rm-nm{font-size:11px;color:#e8d0ff;margin-bottom:10px;}
+.rm-ul{list-style:none;}
+.rm-ul li{font-size:8px;color:#4030a0;padding:3px 0;line-height:1.8;}
+.rm-ul li::before{content:"▸ ";color:#8b2be2;}
+.rm-chip{display:inline-block;margin-top:8px;font-size:7px;padding:3px 10px;border:2px solid;}
+.c-dn{color:#00e5c8;border-color:#00e5c8;}.c-nw{color:#c792ea;border-color:#8b2be2;}.c-up{color:#2a1a4a;border-color:#1a0840;}
+
+/* ── TASKS ── */
+.prog-wrap{
+  background:linear-gradient(180deg,#2a1260 0%,#180840 100%);
+  border:3px solid #6030c0;
+  box-shadow:0 0 0 1px #8040e0, 0 0 25px rgba(139,43,226,0.4), inset 0 0 30px rgba(139,43,226,0.2);
+  padding:14px 18px;margin-bottom:28px;
+  position:relative;
+}
+.prog-wrap::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(180,100,255,0.4),transparent);
+}
+.prog-top{display:flex;justify-content:space-between;font-size:8px;color:#c0a0ff;margin-bottom:10px;}
+.prog-rail{height:12px;background:#020108;border:3px solid #1a0840;}
+.prog-fill{height:100%;background:linear-gradient(90deg,#8b2be2,#00e5c8);transition:width .4s;width:0%;}
+.task{background:#060210;border:4px solid #0f0520;margin-bottom:10px;transition:border-color .2s;}
+.task.ta{border-color:#3a1a6a;animation:task-appear .3s ease;}.task.td{opacity:1 !important;}.task.tl{opacity:1 !important;pointer-events:none;}
+@keyframes task-appear{from{transform:translateX(-8px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+@keyframes task-glow{
+  0%,100%{
+    box-shadow:
+      0 0 0 2px #8b2be2,
+      0 0 15px rgba(180,80,255,0.6),
+      0 0 35px rgba(139,43,226,0.3),
+      0 0 60px rgba(139,43,226,0.15),
+      inset 0 0 25px rgba(139,43,226,0.2);
+  }
+  50%{
+    box-shadow:
+      0 0 0 2px #c792ea,
+      0 0 25px rgba(200,100,255,0.8),
+      0 0 50px rgba(139,43,226,0.5),
+      0 0 80px rgba(139,43,226,0.25),
+      inset 0 0 40px rgba(139,43,226,0.3);
+  }
+}
+.task-hd{display:flex;align-items:center;gap:12px;padding:14px 16px;}
+.task-n{width:34px;height:34px;border:3px solid #6030c0;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;background:#2a1060;color:#c0a0ff;}
+.task-n.na{
+  border-color:#8b2be2;color:#c792ea;
+  background:rgba(139,43,226,0.15);
+  box-shadow:0 0 8px rgba(139,43,226,0.5);
+  animation:pulse-border 1.5s infinite;
+}
+@keyframes pulse-border{0%,100%{box-shadow:0 0 4px #8b2be2}50%{box-shadow:0 0 12px #c792ea}}
+.task-n.nd{border-color:#00e5c8;color:#00e5c8;animation:check-pop .3s ease;}
+@keyframes check-pop{0%{transform:scale(0)}60%{transform:scale(1.3)}100%{transform:scale(1)}}
+.task-inf{flex:1;}.task-tt{font-size:9px;color:#ffffff;margin-bottom:4px;text-shadow:0 0 8px rgba(200,150,255,0.5);}.task-st{font-size:7px;color:#a090d0;line-height:1.7;}
+.task-chip{font-size:7px;padding:3px 8px;border:2px solid;flex-shrink:0;}
+.tca{color:#e0b0ff;border-color:#c792ea;background:rgba(139,43,226,0.2);}.tcd{color:#00e5c8;border-color:#00e5c8;background:rgba(0,229,200,0.15);}.tcl{color:#6050a0;border-color:#3a2060;}
+.task-bd{padding:0 16px 14px;}
+.px-in{
+  width:100%;
+  background:#180840;
+  border:3px solid #5030a0;
+  border-bottom:4px solid #3a1880;
+  color:#ffffff;
+  font-family:"Press Start 2P",monospace;
+  font-size:9px;padding:10px 12px;
+  outline:none;transition:all .2s;
+  box-shadow:inset 0 2px 8px rgba(0,0,0,0.3), 0 0 8px rgba(100,40,200,0.2);
+}
+.px-in:focus{
+  border-color:#8b2be2;
+  box-shadow:inset 0 2px 8px rgba(0,0,0,0.4), 0 0 8px rgba(139,43,226,0.3);
+}
+.px-in::placeholder{color:#2a1a4a;}
+.px-bt{margin-top:10px;background:#a040f0;color:#fff;font-family:"Press Start 2P",monospace;font-size:8px;border:none;padding:10px 20px;cursor:pointer;box-shadow:0 4px 0 #5010a0, 0 0 15px rgba(160,64,240,0.4);transition:all .1s;}
+.px-bt:hover{background:#a040f0;transform:translateY(1px);box-shadow:0 3px 0 #3a0a7a;}
+.px-bt:active{transform:translateY(3px);box-shadow:0 1px 0 #3a0a7a;}
+
+/* WIN */
+#win{display:none;text-align:center;background:#060210;border:4px solid #00e5c8;padding:40px 20px;margin-top:16px;}
+#win.show{display:block;animation:win-appear .5s steps(5);}
+@keyframes win-appear{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+.win-ic{font-size:52px;margin-bottom:16px;animation:spin-in .6s ease;}
+@keyframes spin-in{from{transform:rotate(-180deg) scale(0)}to{transform:rotate(0) scale(1)}}
+.win-tt{font-size:13px;color:#00e5c8;margin-bottom:16px;}.win-tx{font-size:8px;color:#4030a0;line-height:2.8;margin-bottom:16px;}
+.win-wl{background:#020108;border:3px solid #1a0840;padding:10px 14px;font-size:8px;color:#f0c040;word-break:break-all;margin:10px 0;}
+.tw-bt{background:#1da1f2;color:#fff;font-family:"Press Start 2P",monospace;font-size:8px;border:none;padding:12px 22px;cursor:pointer;margin-top:12px;}
+footer{position:relative;z-index:10;text-align:center;padding:28px;border-top:4px solid #0f0520;font-size:7px;color:#2a1a4a;letter-spacing:2px;}
+footer a{color:#4030a0;text-decoration:none;}footer a:hover{color:#c792ea;}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<nav>
+  <span class="nav-logo">◈ HEXLINGS</span>
+  <div class="nav-links">
+    <a href="#home">HOME</a><a href="#art">ART</a><a href="#roadmap">ROADMAP</a><a href="#apply">▶ APPLY WL</a>
+  </div>
+</nav>
+
+<section id="home">
+  <div class="sec-eye" style="margin-bottom:20px;">◈ WHITELIST NOW OPEN ◈</div>
+  <h1 class="hero-title">THE <span class="hl">HEXLINGS</span><br>ARE AWAKENING</h1>
+  <p class="hero-sub">10,000 UNIQUE DARK MAGIC PIXEL ART NFTs ON ETH</p>
+  <div class="sprite-row">
+    <div class="sprite-card" style="--glow-col:#4a90ff;--float-dur:2.0s;--float-delay:0s;">
+      <img src="images/img_0.png" class="sprite-real" alt="WARRIOR">
+      <div class="sprite-shadow"></div>
+      <div class="sprite-name">WARRIOR</div>
+    </div>
+    <div class="sprite-card" style="--glow-col:#f0c040;--float-dur:2.3s;--float-delay:0.2s;">
+      <img src="images/img_1.png" class="sprite-real" alt="HIP-HOP">
+      <div class="sprite-shadow"></div>
+      <div class="sprite-name">HIP-HOP</div>
+    </div>
+    <div class="sprite-card" style="--glow-col:#c792ea;--float-dur:1.8s;--float-delay:0.4s;">
+      <img src="images/img_2.png" class="sprite-real" alt="WIZARD">
+      <div class="sprite-shadow"></div>
+      <div class="sprite-name">WIZARD</div>
+    </div>
+    <div class="sprite-card" style="--glow-col:#c0c0c0;--float-dur:2.5s;--float-delay:0.6s;">
+      <img src="images/img_3.png" class="sprite-real" alt="KNIGHT">
+      <div class="sprite-shadow"></div>
+      <div class="sprite-name">KNIGHT</div>
+    </div>
+    <div class="sprite-card" style="--glow-col:#ff3030;--float-dur:2.1s;--float-delay:0.8s;">
+      <img src="images/img_4.png" class="sprite-real" alt="DEMON">
+      <div class="sprite-shadow"></div>
+      <div class="sprite-name">DEMON</div>
+    </div>
+    <div class="sprite-card" style="--glow-col:#cc8800;--float-dur:1.9s;--float-delay:1.0s;">
+      <img src="images/img_5.png" class="sprite-real" alt="SAMURAI">
+      <div class="sprite-shadow"></div>
+      <div class="sprite-name">SAMURAI</div>
+    </div>
+  </div>
+  <div class="stats-bar">
+    <div class="sbar-item"><span class="sbar-num">10K</span><div class="sbar-lbl">SUPPLY</div></div>
+    <div class="sbar-item"><span class="sbar-num">FREE</span><div class="sbar-lbl">MINT</div></div>
+    <div class="sbar-item"><span class="sbar-num">ETH</span><div class="sbar-lbl">CHAIN</div></div>
+    
+  </div>
+  <a href="#apply" class="btn-main">▶ APPLY NOW</a>
+  <a href="#art" class="btn-ghost">VIEW ART</a>
+</section>
+
+<div class="wrap" id="art" style="padding-top:40px;">
+  <div class="sec-eye">◈ COLLECTION ◈</div>
+  <div class="sec-h">THE ART</div>
+  <div class="art-grid">
+    <div class="art-card" style="--glow-col:#4a90ff;animation-delay:0.0s;">
+      <span class="rt rt-c">COMMON</span>
+      <img src="images/img_6.png" class="art-real" alt="WARRIOR">
+      <div class="art-name">WARRIOR</div>
+    </div>
+    <div class="art-card" style="--glow-col:#f0c040;animation-delay:0.08s;">
+      <span class="rt rt-u">UNCOMMON</span>
+      <img src="images/img_7.png" class="art-real" alt="HIP-HOP">
+      <div class="art-name">HIP-HOP</div>
+    </div>
+    <div class="art-card" style="--glow-col:#c792ea;animation-delay:0.16s;">
+      <span class="rt rt-r">RARE</span>
+      <img src="images/img_8.png" class="art-real" alt="WIZARD">
+      <div class="art-name">WIZARD</div>
+    </div>
+    <div class="art-card" style="--glow-col:#c0c0c0;animation-delay:0.24s;">
+      <span class="rt rt-e">EPIC</span>
+      <img src="images/img_9.png" class="art-real" alt="KNIGHT">
+      <div class="art-name">KNIGHT</div>
+    </div>
+    <div class="art-card" style="--glow-col:#ff3030;animation-delay:0.32s;">
+      <span class="rt rt-e">EPIC</span>
+      <img src="images/img_10.png" class="art-real" alt="DEMON">
+      <div class="art-name">DEMON</div>
+    </div>
+    <div class="art-card" style="--glow-col:#cc8800;animation-delay:0.4s;">
+      <span class="rt rt-r">RARE</span>
+      <img src="images/img_11.png" class="art-real" alt="SAMURAI">
+      <div class="art-name">SAMURAI</div>
+    </div>
+    <div class="art-card" style="--glow-col:#f0c040;animation-delay:0.48s;">
+      <span class="rt rt-u">UNCOMMON</span>
+      <img src="images/img_12.png" class="art-real" alt="RICH">
+      <div class="art-name">RICH</div>
+    </div>
+    <div class="art-card" style="--glow-col:#00e5c8;animation-delay:0.56s;">
+      <span class="rt rt-l">LEGENDARY</span>
+      <img src="images/img_13.png" class="art-real" alt="CYBER">
+      <div class="art-name">CYBER</div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap" id="roadmap">
+  <div class="sec-eye">◈ THE PATH ◈</div>
+  <div class="sec-h">ROADMAP</div>
+  <div class="rm-wrap">
+    <div class="rm-item"><div class="rm-node dn"></div><div class="rm-box"><div class="rm-ph">PHASE 01</div><div class="rm-nm">AWAKENING</div><ul class="rm-ul"><li>Project launch & branding</li><li>2,000+ Twitter followers</li><li>Collab outreach & 1/1 art</li></ul><span class="rm-chip c-dn">✓ DONE</span></div></div>
+    <div class="rm-item"><div class="rm-node nw"></div><div class="rm-box nw"><div class="rm-ph">PHASE 02</div><div class="rm-nm">THE RITUAL</div><ul class="rm-ul"><li>Whitelist applications open</li><li>Collab partnerships live</li><li>Art reveal teasers dropping</li></ul><span class="rm-chip c-nw">◈ NOW</span></div></div>
+    <div class="rm-item"><div class="rm-node"></div><div class="rm-box"><div class="rm-ph">PHASE 03</div><div class="rm-nm">THE SUMMONING</div><ul class="rm-ul"><li>WL mint opens</li><li>Public mint opens</li><li>Full reveal on OpenSea</li></ul><span class="rm-chip c-up">SOON</span></div></div>
+    <div class="rm-item"><div class="rm-node"></div><div class="rm-box"><div class="rm-ph">PHASE 04</div><div class="rm-nm">DOMINION</div><ul class="rm-ul"><li>Lore expansion</li><li>Season 2 announcement</li></ul><span class="rm-chip c-up">SOON</span></div></div>
+  </div>
+</div>
+
+<div class="wrap" id="apply">
+  <div class="sec-eye">◈ WHITELIST ◈</div>
+  <div class="sec-h">APPLY NOW</div>
+  <div class="prog-wrap">
+    <div class="prog-top"><span>PROGRESS</span><span id="plbl">0 / 4 TASKS</span></div>
+    <div class="prog-rail"><div class="prog-fill" id="pfill"></div></div>
+  </div>
+  <div class="task ta" id="t1"><div class="task-inner"><div class="task-hd"><div class="task-n na" id="n1">01</div><div class="task-inf"><div class="task-tt">FOLLOW @HexlingsNFT</div><div class="task-st">Follow our Twitter then enter your username</div></div><div class="task-chip tca" id="c1">ACTIVE</div></div><div class="task-bd">
+      <a href="https://x.com/HexlingsNFT" target="_blank" class="px-bt" style="display:inline-block;text-decoration:none;margin-bottom:10px;">🐦 FOLLOW @HexlingsNFT ▶</a>
+      <input class="px-in" id="i1" placeholder="@YourTwitterUsername"><br>
+      <button class="px-bt" onclick="go(1)">CONFIRM ▶</button>
+    </div></div>
+  <div class="task tl" id="t2"><div class="task-inner"><div class="task-hd"><div class="task-n" id="n2">02</div><div class="task-inf"><div class="task-tt">LIKE & RETWEET PINNED POST</div><div class="task-st">No proof needed — just confirm below</div></div><div class="task-chip tcl" id="c2">LOCKED</div></div><div class="task-bd">
+      <a href="https://x.com/HexlingsNFT/status/2065034061207212160" target="_blank" class="px-bt" style="display:inline-block;text-decoration:none;margin-bottom:10px;">🐦 OPEN PINNED POST ▶</a><br>
+      <button class="px-bt" onclick="go(2)" style="margin-top:4px;">CONFIRM RT ▶</button>
+    </div></div>
+  <div class="task tl" id="t3"><div class="task-inner"><div class="task-hd"><div class="task-n" id="n3">03</div><div class="task-inf"><div class="task-tt">COMMENT WITH PROOF</div><div class="task-st">Comment on pinned post — paste link here</div></div><div class="task-chip tcl" id="c3">LOCKED</div></div><div class="task-bd">
+      <a href="https://x.com/HexlingsNFT/status/2065034061207212160" target="_blank" class="px-bt" style="display:inline-block;text-decoration:none;margin-bottom:10px;">🐦 OPEN PINNED POST ▶</a>
+      <input class="px-in" id="i3" placeholder="https://x.com/your-comment-link"><br>
+      <button class="px-bt" onclick="go(3)">SUBMIT PROOF ▶</button>
+    </div></div></div>
+  <div class="task tl" id="t4"><div class="task-inner"><div class="task-hd"><div class="task-n" id="n4">04</div><div class="task-inf"><div class="task-tt">SUBMIT ETH WALLET</div><div class="task-st">Enter your wallet address to enter the draw</div></div><div class="task-chip tcl" id="c4">LOCKED</div></div><div class="task-bd"><input class="px-in" id="i4" placeholder="0x..."><br><button class="px-bt" onclick="go(4)">SUBMIT WALLET ▶</button></div></div></div>
+  <div id="win"><div class="win-ic">🔮</div><div class="win-tt">APPLICATION COMPLETE!</div><div class="win-tx">YOUR WALLET HAS BEEN SUBMITTED<br>SOMETHING WICKED THIS WAY COMES 🌑</div><div class="win-wl" id="wwl">0x...</div><div style="font-size:7px;color:#2a1a4a;margin:8px 0;">SHARE TO INCREASE YOUR CHANCES</div><button class="tw-bt" onclick="twt()">🐦 SHARE ON TWITTER</button></div>
+</div>
+
+<footer><p>HEXLINGS © 2026 &nbsp;•&nbsp; <a href="https://twitter.com/HexlingsNFT">@HexlingsNFT</a> &nbsp;•&nbsp; ETH &nbsp;•&nbsp; 10,000 UNIQUE HEXLINGS</p></footer>
+
+<script>
+
+const CHARS_B64 = {
+  "warrior": "images/img_14.png",
+  "hiphop": "images/img_15.png",
+  "wizard": "images/img_16.png",
+  "knight": "images/img_17.png",
+  "demon": "images/img_18.png",
+  "samurai": "images/img_19.png",
+  "rich": "images/img_20.png",
+  "cyber": "images/img_21.png",
+};
+
+// ── CANVAS SETUP ──
+const cv=document.getElementById("bg"),cx=cv.getContext("2d");
+function rsz(){cv.width=innerWidth;cv.height=innerHeight;}
+rsz();addEventListener("resize",rsz);
+
+// ── PRELOAD IMAGES ──
+const imgs={};let loaded=0;
+const namesList=["warrior","hiphop","wizard","knight","demon","samurai","rich","cyber"];
+namesList.forEach(n=>{
+  const img=new Image();
+  img.onload=()=>loaded++;
+  img.src=CHARS_B64[n];
+  imgs[n]=img;
+});
+
+// ── STARS ──
+const stars=[];
+for(let i=0;i<200;i++)stars.push({
+  x:Math.random(),y:Math.random()*0.60,
+  s:Math.random()<0.08?3:Math.random()<0.25?2:1,
+  t:Math.random()*Math.PI*2,sp:0.005+Math.random()*0.02
+});
+
+// ── FIREFLIES ──
+const flies=[];
+for(let i=0;i<30;i++)flies.push({
+  x:Math.random(),y:0.55+Math.random()*0.28,
+  t:Math.random()*Math.PI*2,
+  sp:0.02+Math.random()*0.03,
+  vx:(Math.random()-0.5)*0.0003,
+  vy:(Math.random()-0.5)*0.0002,
+  col:Math.random()<0.5?[0,229,200]:[180,100,255]
+});
+
+// ── WALKERS ──
+const walkerDefs=[
+  {name:"warrior", x:0.05, speed:0.00022, dir:1,  scale:0.90},
+  {name:"hiphop",  x:0.20, speed:0.00018, dir:1,  scale:0.85},
+  {name:"wizard",  x:0.40, speed:0.00014, dir:-1, scale:0.95},
+  {name:"demon",   x:0.58, speed:0.00020, dir:1,  scale:0.88},
+  {name:"samurai", x:0.75, speed:0.00016, dir:-1, scale:0.92},
+  {name:"cyber",   x:0.90, speed:0.00019, dir:1,  scale:0.87},
+];
+const walkers=walkerDefs.map(w=>({...w,bobT:Math.random()*Math.PI*2}));
+
+// ── CLOUDS (dark purple pixel style) ──
+const clouds=[
+  {x:0.05,y:0.12,w:140,speed:0.00008},
+  {x:0.35,y:0.08,w:100,speed:0.00006},
+  {x:0.60,y:0.15,w:120,speed:0.00009},
+  {x:0.82,y:0.10,w:90, speed:0.00007},
+];
+function drawCloud(x,y,w,W,H){
+  const cx2=x*W, cy2=y*H;
+  const col="rgba(30,10,60,0.55)";
+  // pixel cloud shape
+  [[0,0,w,18],[w*0.1,-14,w*0.6,18],[w*0.05,-8,w*0.85,20],[-6,4,w+12,14]].forEach(([ox,oy,cw,ch])=>{
+    cx.fillStyle=col;
+    cx.fillRect(Math.round(cx2+ox),Math.round(cy2+oy),Math.round(cw),ch);
+  });
+}
+
+// ── PIXEL TREE ──
+function tree(px,py,W,H,h){
+  const tx=Math.round(px*W),ty=Math.round(py*H);
+  // trunk - darker
+  cx.fillStyle="#120a04";cx.fillRect(tx-3,ty-Math.round(h*0.28),7,Math.round(h*0.32));
+  // foliage layers - very dark green
+  cx.fillStyle="#061504";cx.fillRect(tx-Math.round(h*0.23),ty-Math.round(h*0.60),Math.round(h*0.46),Math.round(h*0.36));
+  cx.fillStyle="#082008";cx.fillRect(tx-Math.round(h*0.18),ty-Math.round(h*0.80),Math.round(h*0.36),Math.round(h*0.28));
+  cx.fillStyle="#0a2a0a";cx.fillRect(tx-Math.round(h*0.10),ty-Math.round(h*0.97),Math.round(h*0.20),Math.round(h*0.22));
+  // pixel highlights
+  cx.fillStyle="#0f3a0c";
+  cx.fillRect(tx-Math.round(h*0.20),ty-Math.round(h*0.57),4,4);
+  cx.fillRect(tx+Math.round(h*0.06),ty-Math.round(h*0.76),3,3);
+}
+
+// ── GROUND LAYERS ──
+function ground(W,H){
+  const GY=Math.round(H*0.78);
+  // deep ground fill
+  cx.fillStyle="#04010e";cx.fillRect(0,GY+10,W,H-GY);
+  // mid ground strip
+  cx.fillStyle="#070218";cx.fillRect(0,GY,W,14);
+  // dirt path (center wide)
+  cx.fillStyle="#0c0428";cx.fillRect(0,GY,W,8);
+  cx.fillStyle="#0a0322";
+  for(let x=0;x<W;x+=24){cx.fillRect(x,GY+2,14,3);}
+  // grass strip
+  cx.fillStyle="#082008";cx.fillRect(0,GY-10,W,14);
+  // grass pixel blades
+  cx.fillStyle="#0d2e0a";
+  for(let x=0;x<W;x+=5){
+    const h2=3+Math.floor(Math.sin(x*0.13)*3);
+    cx.fillRect(x,GY-9-h2,2,h2+2);
+  }
+  cx.fillStyle="#0a3808";
+  for(let x=2;x<W;x+=8){
+    const h2=2+Math.floor(Math.cos(x*0.09)*2);
+    cx.fillRect(x,GY-7-h2,2,h2);
+  }
+  // foreground darker ground
+  cx.fillStyle="#030010";cx.fillRect(0,Math.round(H*0.88),W,H);
+}
+
+// ── MOUNTAINS ──
+function mountains(W,H){
+  // back mountains
+  cx.fillStyle="#0c0322";
+  let p=[[0,.64],[.06,.50],[.14,.57],[.24,.42],[.35,.54],[.46,.38],[.57,.50],[.67,.39],[.77,.53],[.87,.42],[.96,.57],[1,.64],[1,1],[0,1]];
+  cx.beginPath();p.forEach((pt,i)=>i?cx.lineTo(pt[0]*W,pt[1]*H):cx.moveTo(pt[0]*W,pt[1]*H));cx.closePath();cx.fill();
+  // front mountains
+  cx.fillStyle="#080218";
+  p=[[0,.72],[.08,.59],[.19,.66],[.30,.53],[.42,.62],[.53,.50],[.63,.60],[.74,.52],[.84,.61],[.93,.54],[1,.63],[1,1],[0,1]];
+  cx.beginPath();p.forEach((pt,i)=>i?cx.lineTo(pt[0]*W,pt[1]*H):cx.moveTo(pt[0]*W,pt[1]*H));cx.closePath();cx.fill();
+}
+
+// ── RUNE CIRCLES on ground ──
+function runes(W,H,t){
+  cx.save();cx.translate(W*0.5,H*0.80);cx.scale(1,0.25);
+  const rings=[{r:280,sp:.0003,c:"139,43,226"},{r:185,sp:-.0005,c:"0,229,200"},{r:105,sp:.0008,c:"240,192,64"}];
+  rings.forEach(({r,sp,c})=>{
+    const rot=t*sp;
+    cx.strokeStyle=`rgba(${c},0.12)`;cx.lineWidth=3;
+    cx.beginPath();cx.arc(0,0,r,0,Math.PI*2);cx.stroke();
+    for(let k=0;k<8;k++){
+      const a=k*Math.PI/4+rot;
+      cx.fillStyle=`rgba(${c},0.30)`;
+      cx.fillRect(Math.cos(a)*r-4,Math.sin(a)*r-4,8,8);
+    }
+  });
+  cx.restore();
+}
+
+let t=0;
+function frame(){
+  const W=cv.width,H=cv.height;
+  const GY=Math.round(H*0.78);
+  t++;
+
+  // ── SKY gradient (dark like HEXLINGS brand) ──
+  const sky=cx.createLinearGradient(0,0,0,H*0.80);
+  sky.addColorStop(0.0,"#000008");
+  sky.addColorStop(0.3,"#03000f");
+  sky.addColorStop(0.6,"#060118");
+  sky.addColorStop(1.0,"#0a0325");
+  cx.fillStyle=sky;cx.fillRect(0,0,W,H);
+
+  // ── STARS ──
+  stars.forEach(s=>{
+    s.t+=s.sp;
+    const a=0.1+0.9*((Math.sin(s.t)+1)/2);
+    cx.fillStyle=`rgba(220,200,255,${a})`;
+    cx.fillRect(Math.round(s.x*W),Math.round(s.y*H),s.s,s.s);
+  });
+
+  // ── MOON ──
+  const mx=W*0.82,my=H*0.10;
+  // outer glow
+  const mg=cx.createRadialGradient(mx,my,0,mx,my,80);
+  mg.addColorStop(0,"rgba(160,100,255,0.20)");
+  mg.addColorStop(0.5,"rgba(100,50,200,0.08)");
+  mg.addColorStop(1,"rgba(0,0,0,0)");
+  cx.fillStyle=mg;cx.beginPath();cx.arc(mx,my,80,0,Math.PI*2);cx.fill();
+  // moon body
+  cx.fillStyle="#e0c8ff";cx.beginPath();cx.arc(mx,my,22,0,Math.PI*2);cx.fill();
+  // crescent shadow
+  cx.fillStyle="#0a0320";cx.beginPath();cx.arc(mx+8,my-4,18,0,Math.PI*2);cx.fill();
+  // pixel craters
+  cx.fillStyle="rgba(180,140,240,0.4)";
+  cx.fillRect(mx-8,my+4,4,4);cx.fillRect(mx-2,my-8,3,3);
+
+  // ── PIXEL CLOUDS ──
+  clouds.forEach(c2=>{
+    c2.x+=c2.speed;if(c2.x>1.2)c2.x=-0.2;
+    drawCloud(c2.x,c2.y,c2.w,W,H);
+  });
+
+  // ── FIREFLIES ──
+  flies.forEach(f=>{
+    f.t+=f.sp;f.x+=f.vx;f.y+=f.vy;
+    if(f.x<0||f.x>1)f.vx*=-1;
+    if(f.y<0.45||f.y>0.80)f.vy*=-1;
+    const fa=0.3+0.7*((Math.sin(f.t)+1)/2);
+    cx.fillStyle=`rgba(${f.col.join(",")},${fa})`;
+    const fs=2;
+    cx.fillRect(Math.round(f.x*W),Math.round(f.y*H),fs,fs);
+    // tiny glow
+    cx.fillStyle=`rgba(${f.col.join(",")},${fa*0.2})`;
+    cx.fillRect(Math.round(f.x*W)-2,Math.round(f.y*H)-2,fs+4,fs+4);
+  });
+
+  mountains(W,H);
+
+  
+
+  runes(W,H,t);
+  ground(W,H);
+
+  
+
+  // ── GROUND FOG ──
+  const fog=cx.createLinearGradient(0,H*0.74,0,H);
+  fog.addColorStop(0,"rgba(2,0,10,0)");
+  fog.addColorStop(0.35,"rgba(2,0,10,0.55)");
+  fog.addColorStop(1,"rgba(2,0,10,0.97)");
+  cx.fillStyle=fog;cx.fillRect(0,H*0.74,W,H*0.26);
+
+  requestAnimationFrame(frame);
+}frame();
+
+let done=0;const D={u:"",c:"",w:""};
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbzM_C8B6FgotLkCGWaI8gCfr7KHvDBqQmWCkAWe1xvXcgROWLzFq-cOuv8FDML0BZBCEw/exec";
+
+function go(n){
+  if(n===1){const v=document.getElementById("i1").value.trim();if(!v)return alert("Enter your Twitter username");D.u=v;}
+  if(n===3){const v=document.getElementById("i3").value.trim();if(!v)return alert("Paste your comment link");D.c=v;}
+  if(n===4){
+    const v=document.getElementById("i4").value.trim();
+    if(!v||!v.startsWith("0x")||v.length<30)return alert("Enter a valid ETH wallet (starts with 0x)");
+    D.w=v;
+  }
+  document.getElementById("t"+n).className="task td";
+  const ni=document.getElementById("n"+n);ni.className="task-n nd";ni.textContent="✓";
+  const ci=document.getElementById("c"+n);ci.className="task-chip tcd";ci.textContent="DONE";
+  done++;
+  document.getElementById("pfill").style.width=(done/4*100)+"%";
+  document.getElementById("plbl").textContent=done+" / 4 TASKS";
+  if(n<4){
+    document.getElementById("t"+(n+1)).className="task ta";
+    document.getElementById("n"+(n+1)).className="task-n na";
+    document.getElementById("c"+(n+1)).className="task-chip tca";
+    document.getElementById("c"+(n+1)).textContent="ACTIVE";
+  }
+  if(n===4){
+    // Send to Google Sheets
+    const btn = document.querySelector("#t4 .px-bt");
+    if(btn){ btn.textContent="SUBMITTING..."; btn.disabled=true; }
+    
+    fetch(SHEET_URL, {
+      method:"POST",
+      mode:"no-cors",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        username: D.u,
+        comment: D.c,
+        wallet: D.w
+      })
+    })
+    .then(()=>{
+      document.getElementById("wwl").textContent=D.w;
+      const w=document.getElementById("win");
+      w.classList.add("show");
+      w.scrollIntoView({behavior:"smooth"});
+    })
+    .catch(()=>{
+      // Still show success even if fetch fails (no-cors limitation)
+      document.getElementById("wwl").textContent=D.w;
+      const w=document.getElementById("win");
+      w.classList.add("show");
+      w.scrollIntoView({behavior:"smooth"});
+    });
+  }
+}
+function twt(){const t=encodeURIComponent("I just applied for the HEXLINGS Whitelist! 🌑\n10,000 dark magic pixel art NFTs — FREE MINT on ETH\n#HEXLINGS #NFT #Whitelist @HexlingsNFT");window.open("https://twitter.com/intent/tweet?text="+t,"_blank");}
+</script>
+</body>
+</html>
